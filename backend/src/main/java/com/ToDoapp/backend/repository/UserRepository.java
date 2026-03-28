@@ -1,14 +1,14 @@
 package com.todoapp.backend.repository;
 
-import com.todoapp.backend.entity.Todo;
 import com.todoapp.backend.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface TodoRepository extends JpaRepository<Todo, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    List<Todo> findByUser(User user);
+    Optional<User> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

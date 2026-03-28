@@ -1,8 +1,11 @@
 package com.todoapp.backend.service;
 
 import com.todoapp.backend.entity.Todo;
+import com.todoapp.backend.entity.User;
 import com.todoapp.backend.repository.TodoRepository;
+import com.todoapp.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,17 +15,30 @@ import java.util.List;
 public class TodoService {
 
     private final TodoRepository todoRepository;
+    private final UserRepository userRepository;
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 
     public List<Todo> getAllTodos() {
-        return todoRepository.findAll();
+        return todoRepository.findByUser(getCurrentUser());
     }
 
     public Todo getTodoById(Long id) {
-        return todoRepository.findById(id)
+        Todo todo = todoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Todo not found with id: " + id));
+
+        if (!todo.getUser().getId().equals(getCurrentUser().getId())) {
+            throw new RuntimeException("Access denied");
+        }
+        return todo;
     }
 
     public Todo createTodo(Todo todo) {
+        todo.setUser(getCurrentUser());
         return todoRepository.save(todo);
     }
 
